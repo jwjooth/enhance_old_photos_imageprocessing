@@ -1,32 +1,32 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+# __pycache__/
 *.py[cod]
 *$py.class
 
 # Virtual environments
-venv/
-env/
-ENV/
-virtualenv/
+# venv/
+# env/
+# ENV/
+# virtualenv/
 
 # IDE
-.vscode/
-.idea/
+# .vscode/
+# .idea/
 *.swp
 *.swo
 *.sublime-*
 
 # Project-specific
-input/
-output/
-logs/
+# input/
+# output/
+# logs/
 *.log
 .DS_Store
 Thumbs.db
 
 # Cache
-.pytest_cache/
-.streamlit/
+# .pytest_cache/
+# .streamlit/
 
 # Database
 *.db
