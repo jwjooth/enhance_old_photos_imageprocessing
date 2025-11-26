@@ -1,0 +1,26 @@
+{
+  "paths": {
+    "input": "input",
+    "output": "output",
+    "temp": "temp",
+    "logs": "logs"
+  },
+  "geometric": {
+    "auto_rotation": true,
+    "angle_threshold": 5
+  },
+  "filtering": {
+    "method": "bilateral",
+    "strength": 1.0,
+    "combined_filters": false
+  },
+  "histogram": {
+    "method": "clahe",
+    "clip_limit": 2.0,
+    "color_balance": true
+  },
+  "processing": {
+    "quality": 95,
+    "max_image_size": 2048
+  }
+}
