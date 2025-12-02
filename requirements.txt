@@ -1,5 +1,5 @@
 # Core
-opencv-python>=4.8.0
+opencv-python-headless==4.9.0.80
 numpy>=1.26.0
 pillow>=10.0.0
 scikit-image>=0.21.0
