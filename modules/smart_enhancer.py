@@ -3,7 +3,7 @@ SMART ENHANCEMENT MODULE
 Otomatis enhance images based on conditions
 
 Author: Photo Enhancement Team
-Version: 1.0.0
+Version: 1.0.1 (Added auto_rotate parameter)
 """
 
 import cv2
@@ -23,7 +23,7 @@ class SmartEnhancer:
     """
     Smart enhancement yang otomatis sesuaikan metode berdasarkan kondisi gambar
     """
-    
+
     def __init__(self):
         """Initialize smart enhancer"""
         self.logger = logging.getLogger(__name__)
@@ -31,14 +31,15 @@ class SmartEnhancer:
         self.geometric = GeometricCorrection()
         self.filtering = NoiseFiltering()
         self.histogram = HistogramEqualization()
-    
-    def enhance(self, image: np.ndarray) -> Dict:
+
+    def enhance(self, image: np.ndarray, auto_rotate: bool = True) -> Dict:
         """
         Smart enhancement dengan auto-detection.
-        
+
         Args:
             image (np.ndarray): Input image
-            
+            auto_rotate (bool): Enable/disable automatic rotation correction (default: True)
+
         Returns:
             dict: {
                 'original': original image,
@@ -49,137 +50,155 @@ class SmartEnhancer:
                 'steps_applied': list of steps applied
             }
         """
-        
+
         self.logger.info("🤖 Starting smart enhancement...")
-        
+
         original_image = image.copy()
         enhanced_image = image.copy()
         steps_applied = []
-        
+
         # Step 1: Analyze image
         self.logger.info("📊 Analyzing image...")
         analysis_result = self.analyzer.analyze(image)
-        analysis = analysis_result['analysis']
-        recommendations = analysis_result['recommendations']
-        report = analysis_result['report']
-        
-        # Step 2: Apply geometric correction if needed
-        if recommendations['geometric']['apply']:
+        analysis = analysis_result["analysis"]
+        recommendations = analysis_result["recommendations"]
+        report = analysis_result["report"]
+
+        # Step 2: Apply geometric correction if needed AND auto_rotate is enabled
+        if auto_rotate and recommendations["geometric"]["apply"]:
             self.logger.info("🔄 Applying geometric correction...")
+            self.logger.info(f"   Detected angle: {analysis['rotation']['angle']:.2f}°")
+            self.logger.info(f"   Confidence: {analysis['rotation']['confidence']:.2f}")
+            self.logger.info(f"   Lines detected: {analysis['rotation'].get('lines_detected', 0)}")
+
             try:
                 geo_result = self.geometric.correct(
                     enhanced_image,
-                    auto_rotation=recommendations['geometric']['auto_rotation'],
-                    angle_threshold=recommendations['geometric']['angle_threshold']
+                    auto_rotation=recommendations["geometric"]["auto_rotation"],
+                    angle_threshold=recommendations["geometric"]["angle_threshold"],
                 )
-                enhanced_image = geo_result['image']
-                steps_applied.append({
-                    'step': 'Geometric Correction',
-                    'method': 'auto-rotation',
-                    'angle': geo_result['angle'],
-                    'reason': recommendations['geometric']['reason']
-                })
-                self.logger.info(f"✓ Geometric correction applied (angle: {geo_result['angle']:.2f}°)")
+                enhanced_image = geo_result["image"]
+                steps_applied.append(
+                    {
+                        "step": "Geometric Correction",
+                        "method": "auto-rotation",
+                        "angle": geo_result["angle"],
+                        "confidence": analysis["rotation"]["confidence"],
+                        "reason": recommendations["geometric"]["reason"],
+                    }
+                )
+                self.logger.info(
+                    f"✓ Geometric correction applied (angle: {geo_result['angle']:.2f}°)"
+                )
             except Exception as e:
                 self.logger.warning(f"Geometric correction failed: {e}")
-        
+        elif not auto_rotate and recommendations["geometric"]["apply"]:
+            self.logger.info(f"⏭  Skipping geometric correction (auto_rotate disabled)")
+            self.logger.info(f"   Would have rotated: {analysis['rotation']['angle']:.2f}°")
+
         # Step 3: Apply filtering if needed
-        if recommendations['filtering']['apply']:
+        if recommendations["filtering"]["apply"]:
             self.logger.info(f"🧹 Applying {recommendations['filtering']['method']} filter...")
             try:
-                if recommendations['filtering']['combined']:
+                if recommendations["filtering"]["combined"]:
                     self.logger.info("Using combined filtering (bilateral + NLM)")
                     enhanced_image = self.filtering.combined_filter(
                         enhanced_image,
-                        'bilateral',
-                        'nlm',
-                        strength=recommendations['filtering']['strength']
+                        "bilateral",
+                        "nlm",
+                        strength=recommendations["filtering"]["strength"],
                     )
-                    filter_method = 'bilateral + NLM (combined)'
+                    filter_method = "bilateral + NLM (combined)"
                 else:
                     filt_result = self.filtering.apply_filter(
                         enhanced_image,
-                        filter_type=recommendations['filtering']['method'],
-                        strength=recommendations['filtering']['strength']
+                        filter_type=recommendations["filtering"]["method"],
+                        strength=recommendations["filtering"]["strength"],
                     )
-                    enhanced_image = filt_result['image']
-                    filter_method = recommendations['filtering']['method']
-                
-                steps_applied.append({
-                    'step': 'Noise Filtering',
-                    'method': filter_method,
-                    'strength': recommendations['filtering']['strength'],
-                    'reason': recommendations['filtering']['reason']
-                })
+                    enhanced_image = filt_result["image"]
+                    filter_method = recommendations["filtering"]["method"]
+
+                steps_applied.append(
+                    {
+                        "step": "Noise Filtering",
+                        "method": filter_method,
+                        "strength": recommendations["filtering"]["strength"],
+                        "reason": recommendations["filtering"]["reason"],
+                    }
+                )
                 self.logger.info(f"✓ Filtering applied ({filter_method})")
             except Exception as e:
                 self.logger.warning(f"Filtering failed: {e}")
-        
+
         # Step 4: Apply histogram enhancement if needed
-        if recommendations['histogram']['apply']:
+        if recommendations["histogram"]["apply"]:
             self.logger.info("💡 Applying histogram enhancement...")
             try:
                 hist_result = self.histogram.enhance(
                     enhanced_image,
-                    method='clahe',
-                    clip_limit=recommendations['histogram']['clip_limit']
+                    method="clahe",
+                    clip_limit=recommendations["histogram"]["clip_limit"],
                 )
-                enhanced_image = hist_result['image']
-                
-                steps_applied.append({
-                    'step': 'Histogram Enhancement',
-                    'method': 'CLAHE',
-                    'clip_limit': recommendations['histogram']['clip_limit'],
-                    'reason': recommendations['histogram']['reason']
-                })
-                
+                enhanced_image = hist_result["image"]
+
+                steps_applied.append(
+                    {
+                        "step": "Histogram Enhancement",
+                        "method": "CLAHE",
+                        "clip_limit": recommendations["histogram"]["clip_limit"],
+                        "reason": recommendations["histogram"]["reason"],
+                    }
+                )
+
                 # Apply color balance if needed
-                if recommendations['histogram']['color_balance']:
+                if recommendations["histogram"]["color_balance"]:
                     self.logger.info("🎨 Applying color balance...")
                     enhanced_image = self.histogram.color_balance(enhanced_image)
-                    steps_applied[-1]['color_balance'] = True
-                
+                    steps_applied[-1]["color_balance"] = True
+
                 # Apply local contrast if needed
-                if recommendations['histogram']['local_contrast']:
+                if recommendations["histogram"]["local_contrast"]:
                     self.logger.info("📊 Enhancing local contrast...")
                     enhanced_image = self.histogram.local_contrast_enhancement(
-                        enhanced_image,
-                        strength=1.3
+                        enhanced_image, strength=1.3
                     )
-                    steps_applied[-1]['local_contrast'] = True
-                
+                    steps_applied[-1]["local_contrast"] = True
+
                 self.logger.info("✓ Histogram enhancement applied")
             except Exception as e:
                 self.logger.warning(f"Histogram enhancement failed: {e}")
-        
+
         self.logger.info(f"✅ Smart enhancement complete! ({len(steps_applied)} steps applied)")
-        
+
         return {
-            'original': original_image,
-            'enhanced': enhanced_image,
-            'analysis': analysis,
-            'recommendations': recommendations,
-            'report': report,
-            'steps_applied': steps_applied,
-            'summary': report['summary']
+            "original": original_image,
+            "enhanced": enhanced_image,
+            "analysis": analysis,
+            "recommendations": recommendations,
+            "report": report,
+            "steps_applied": steps_applied,
+            "summary": report["summary"],
         }
-    
-    def batch_enhance(self, images: Dict[str, np.ndarray]) -> Dict[str, Dict]:
+
+    def batch_enhance(
+        self, images: Dict[str, np.ndarray], auto_rotate: bool = True
+    ) -> Dict[str, Dict]:
         """
         Batch enhancement untuk multiple images.
-        
+
         Args:
             images (dict): {filename: image_array}
-            
+            auto_rotate (bool): Enable/disable automatic rotation for all images
+
         Returns:
             dict: Results untuk setiap image
         """
-        
+
         results = {}
-        
+
         for idx, (filename, image) in enumerate(images.items(), 1):
             self.logger.info(f"\n[{idx}/{len(images)}] Processing {filename}")
-            result = self.enhance(image)
+            result = self.enhance(image, auto_rotate=auto_rotate)
             results[filename] = result
-        
+
         return results
