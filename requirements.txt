@@ -1,22 +1,28 @@
 # Core
-numpy==1.26.4
-opencv-python-headless==4.9.0.80
-Pillow==10.4.0
-scikit-image==0.21.0
-scipy==1.11.4
-tqdm==4.66.0
+opencv-python>=4.8.0
+numpy>=1.26.0
+pillow>=10.0.0
+scikit-image>=0.21.0
+tqdm>=4.66.0
 
 # Web App
-streamlit==1.36.0
-streamlit-option-menu==0.3.6
+streamlit>=1.28.0
+streamlit-option-menu>=0.3.2
 
-# Image IO
-imageio==2.34.0
+# Image Processing
+scipy>=1.11.0
+imageio>=2.31.0
 
 # Data & Analysis
-pandas==2.2.2
-matplotlib==3.9.0
+pandas>=2.0.0
+matplotlib>=3.7.0
 
-# Utils
-python-dotenv==1.0.1
-pydantic==2.9.2
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+
+# Development (optional)
+pytest>=7.4.0
+black>=23.7.0
+pylint>=2.17.0
+flake8>=6.0.0

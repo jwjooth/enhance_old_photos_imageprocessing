@@ -397,7 +397,7 @@ with tab1:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         process_button = st.button(
-            "🚀 START PROCESSING", use_container_width=True, type="primary", key="process_btn"
+            "🚀 START PROCESSING", width='stretch', type="primary", key="process_btn"
         )
 
     # ============================================================================
@@ -639,11 +639,11 @@ with tab2:
                 with col1:
                     st.markdown("**Original**")
                     orig_rgb = cv2.cvtColor(result["original"], cv2.COLOR_BGR2RGB)
-                    st.image(orig_rgb, use_container_width=True)
+                    st.image(orig_rgb, width='stretch')
                 with col2:
                     st.markdown("**Enhanced**")
                     enh_rgb = cv2.cvtColor(result["enhanced"], cv2.COLOR_BGR2RGB)
-                    st.image(enh_rgb, use_container_width=True)
+                    st.image(enh_rgb, width='stretch')
 
                 st.markdown("### 📥 Download")
                 col1, col2 = st.columns(2)
@@ -656,7 +656,7 @@ with tab2:
                         buffer.tobytes(),
                         f"enhanced_{Path(file_name).stem}.jpg",
                         "image/jpeg",
-                        use_container_width=True,
+                        width='stretch',
                     )
                 with col2:
                     _, buffer = cv2.imencode(".png", result["enhanced"])
@@ -665,7 +665,7 @@ with tab2:
                         buffer.tobytes(),
                         f"enhanced_{Path(file_name).stem}.png",
                         "image/png",
-                        use_container_width=True,
+                        width='stretch',
                     )
     else:
         st.info("📌 Process photos first in the Upload tab!")
